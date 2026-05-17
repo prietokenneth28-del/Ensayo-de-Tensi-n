@@ -1,0 +1,6 @@
+Flask==3.0.3
+Flask-Cors==4.0.1
+gunicorn==22.0.0
+matplotlib==3.9.2
+numpy==2.1.1
+sympy==1.13.2
