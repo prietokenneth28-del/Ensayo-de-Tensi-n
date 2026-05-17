@@ -86,13 +86,21 @@ def procesar_ensayo(load, stroke, A, L0, units):
         
     Sy = stress[idx_real]
     x_Sy = strain_corrected[idx_real]
+    
+    ## Listas de variables para graficar:
 
+    strain_position = np.where(strain_corrected >= 0)
+
+
+    strain_graff = strain_corrected[strain_position]
+    stress_graff = stress[strain_position] 
+    
     return {
         "E": round(m / 1000, 2),
         "Sy": round(Sy, 2),
         "Sut": round(np.max(stress), 2),
-        "strain_corrected": strain_corrected.tolist(),
-        "stress": stress.tolist(),
+        "strain_corrected": strain_graff.tolist(),
+        "stress": stress_graff.tolist(),
         "x_Sy": x_Sy,
         "y_Sy": Sy
     }

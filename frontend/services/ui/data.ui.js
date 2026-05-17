@@ -1,3 +1,57 @@
+// Funcion para graficar  
+function renderGraph(strain, stress, offsetStrain, offsetStress) {
+    // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
+    const graphContainer = document.getElementById('graphDiv');
+    graphContainer.classList.remove('d-flex', 'justify-content-center', 'align-items-center', 'bg-light', 'border', 'rounded');
+    
+    // Eliminar el mensaje de "Cargue un archivo..."
+    const placeholder = document.getElementById('placeholderMsg');
+    if (placeholder) {
+        placeholder.remove();
+    }
+
+    var curveTrace = {
+        x: strain, y: stress, mode: 'lines', type: 'scattergl',
+        name: 'Curva Esfuerzo deformación', line: { color: '#0151ff', width: 2 }
+    };
+
+    var offsetTrace = {
+        x: offsetStrain, y: offsetStress, mode: 'lines',
+        line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
+    };
+
+    // Arreglo base de trazas
+    let tracesToPlot = [curveTrace, offsetTrace];
+
+    // Verificar si el switch de Esfuerzo Real está activado en el HTML
+    const showTrueStress = document.getElementById('toggleTrueStress').checked;
+
+    if (showTrueStress && processedData.trueStrain.length > 0) {
+        var trueTrace = {
+            x: processedData.trueStrain, 
+            y: processedData.trueStress, 
+            mode: 'lines', 
+            type: 'scattergl',
+            name: 'Curva Esfuerzo Real', 
+            line: { color: '#198754', width: 2, dash: 'dot' } // Verde y punteado
+        };
+        tracesToPlot.push(trueTrace);
+    }
+
+    var layout = {
+        title: { text: 'Curva Esfuerzo vs Deformación', font: { family: 'system-ui, -apple-system, sans-serif', size: 18 } },
+        xaxis: { title: 'Deformación Unitaria (mm/mm)', zeroline: true, showgrid: true },
+        yaxis: { title: 'Esfuerzo (MPa)', zeroline: true, showgrid: true },
+        hovermode: 'closest', 
+        margin: { l: 60, r: 30, t: 50, b: 50 },
+        autosize: true // Asegura que tome el tamaño del contenedor
+    };
+
+    // Configuramos responsive: true para evitar solapamientos al redimensionar la ventana
+    Plotly.newPlot('graphDiv', tracesToPlot, layout, {responsive: true});
+}
+
+// Enviar el archivo al backend 
 document.getElementById('fileInput').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -50,4 +104,9 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         console.error("Error en la comunicación:", error);
         alert("Hubo un problema al procesar el documento en el servidor.");
     }
+});
+
+//
+document.getElementById('btnPrintReport').addEventListener('click', function() {
+    window.print();
 });
