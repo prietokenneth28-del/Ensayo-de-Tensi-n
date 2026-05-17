@@ -87,6 +87,10 @@ def procesar_ensayo(load, stroke, A, L0, units):
     Sy = stress[idx_real]
     x_Sy = strain_corrected[idx_real]
     
+    ##Linea del modulo de Young:
+    y_plot_elastic = np.linspace(0, Sy, 100)
+    x_plot_elastic = y_plot_elastic / m
+
     ## Listas de variables para graficar:
 
     strain_position = np.where(strain_corrected >= 0)
@@ -102,7 +106,9 @@ def procesar_ensayo(load, stroke, A, L0, units):
         "strain_corrected": strain_graff.tolist(),
         "stress": stress_graff.tolist(),
         "x_Sy": x_Sy,
-        "y_Sy": Sy
+        "y_Sy": Sy,
+        "x_plot_elastic": x_plot_elastic.tolist(),
+        "y_plot_elastic": y_plot_elastic.tolist()
     }
 
 @app.route('/upload-and-calculate', methods=['POST'])

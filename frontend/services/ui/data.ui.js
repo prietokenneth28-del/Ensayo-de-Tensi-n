@@ -1,5 +1,5 @@
 // Funcion para graficar  
-function renderGraph(strain, stress, offsetStrain, offsetStress) {
+function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
     // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
     const graphContainer = document.getElementById('graphDiv');
     graphContainer.classList.remove('d-flex', 'justify-content-center', 'align-items-center', 'bg-light', 'border', 'rounded');
@@ -12,31 +12,35 @@ function renderGraph(strain, stress, offsetStrain, offsetStress) {
 
     var curveTrace = {
         x: strain, y: stress, mode: 'lines', type: 'scattergl',
-        name: 'Curva Esfuerzo deformación', line: { color: '#0151ff', width: 2 }
+        name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
     };
 
+    var interpolationTrace = {
+        x: x_E, y: y_E, mode: 'lines',
+        line: { dash: 'dash', color: '#004e1a', width: 1.5 }, name: 'Interpolación lineal'
+    };
     var offsetTrace = {
         x: offsetStrain, y: offsetStress, mode: 'lines',
         line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
     };
 
     // Arreglo base de trazas
-    let tracesToPlot = [curveTrace, offsetTrace];
+    let tracesToPlot = [curveTrace, offsetTrace, interpolationTrace];
 
     // Verificar si el switch de Esfuerzo Real está activado en el HTML
     const showTrueStress = document.getElementById('toggleTrueStress').checked;
 
-    if (showTrueStress && processedData.trueStrain.length > 0) {
-        var trueTrace = {
-            x: processedData.trueStrain, 
-            y: processedData.trueStress, 
-            mode: 'lines', 
-            type: 'scattergl',
-            name: 'Curva Esfuerzo Real', 
-            line: { color: '#198754', width: 2, dash: 'dot' } // Verde y punteado
-        };
-        tracesToPlot.push(trueTrace);
-    }
+    // if (showTrueStress && processedData.trueStrain.length > 0) {
+    //     var trueTrace = {
+    //         x: processedData.trueStrain, 
+    //         y: processedData.trueStress, 
+    //         mode: 'lines', 
+    //         type: 'scattergl',
+    //         name: 'Curva Esfuerzo Real', 
+    //         line: { color: '#198754', width: 2, dash: 'dot' } // Verde y punteado
+    //     };
+    //     tracesToPlot.push(trueTrace);
+    // }
 
     var layout = {
         title: { text: 'Curva Esfuerzo vs Deformación', font: { family: 'system-ui, -apple-system, sans-serif', size: 18 } },
@@ -44,7 +48,9 @@ function renderGraph(strain, stress, offsetStrain, offsetStress) {
         yaxis: { title: 'Esfuerzo (MPa)', zeroline: true, showgrid: true },
         hovermode: 'closest', 
         margin: { l: 60, r: 30, t: 50, b: 50 },
-        autosize: true // Asegura que tome el tamaño del contenedor
+        autosize: true, // Asegura que tome el tamaño del contenedor
+        annotations: [
+            { x: x_Sy, y: y_Sy, xref: 'x', yref: 'y', text: `Sy: ${Number(y_Sy.toFixed(2))} MPa`, showarrow: true, arrowhead: 2, ax: -40, ay: -30, font: { color: 'red' } }]
     };
 
     // Configuramos responsive: true para evitar solapamientos al redimensionar la ventana
@@ -96,7 +102,14 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         // 3. Pasar las variables directas a Plotly
         const offsetStrain = [0.002, data.x_Sy];
         const offsetStress = [0, data.y_Sy];
-        renderGraph(data.strain_corrected, data.stress, offsetStrain, offsetStress);
+        const y_Sy = data.y_Sy
+        const x_Sy = data.x_Sy
+        renderGraph(data.strain_corrected, 
+                    data.stress,
+                    offsetStrain, offsetStress,
+                    data.x_plot_elastic,
+                    data.y_plot_elastic,
+                    x_Sy, y_Sy);
         
         document.getElementById('btnPrintReport').disabled = false;
 
