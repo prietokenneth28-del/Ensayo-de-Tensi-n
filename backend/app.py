@@ -104,6 +104,7 @@ def procesar_ensayo(load, stroke, A, L0, units):
         "Sy": round(Sy, 2),
         "Sut": round(np.max(stress), 2),
         "strain_corrected": strain_graff.tolist(),
+        "strain": strain.tolist(),
         "stress": stress_graff.tolist(),
         "x_Sy": x_Sy,
         "y_Sy": Sy,

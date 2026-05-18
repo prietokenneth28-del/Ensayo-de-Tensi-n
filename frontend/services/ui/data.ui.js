@@ -1,6 +1,13 @@
 
 // Funcion para graficar  
-function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
+// Variable global para almacenar los últimos datos traídos de Python
+let lastGraphData = null;
+
+// Funcion para graficar  
+function renderGraph(strain, strain_corrected, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
+    // 1. Guardar los datos en memoria para poder redibujar sin llamar al backend
+    lastGraphData = { strain, strain_corrected, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy };
+
     // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
     const graphContainer = document.getElementById('graphDiv');
     graphContainer.classList.remove('d-flex', 'justify-content-center', 'align-items-center', 'bg-light', 'border', 'rounded');
@@ -11,52 +18,80 @@ function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy,
         placeholder.remove();
     }
 
+    // Trazas (Líneas de la gráfica)
+     if (document.getElementById('toggleSmoothing').checked && strain_corrected && stress) {
     var curveTrace = {
+        x: strain_corrected, y: stress, mode: 'lines', type: 'scattergl',
+        name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
+    };
+    } else {
+        var curveTrace = {
         x: strain, y: stress, mode: 'lines', type: 'scattergl',
         name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
     };
 
-    var interpolationTrace = {
-        x: x_E, y: y_E, mode: 'lines',
-        line: { dash: 'dash', color: '#004e1a', width: 1.5 }, name: 'Interpolación lineal'
-    };
-    var offsetTrace = {
-        x: offsetStrain, y: offsetStress, mode: 'lines',
-        line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
-    };
+    }
 
-    // Arreglo base de trazas
-    let tracesToPlot = [curveTrace, interpolationTrace, offsetTrace];
+    let tracesToPlot = [curveTrace]; // La curva principal siempre se muestra
 
-    // Verificar si el switch de Esfuerzo Real está activado en el HTML
-    const showTrueStress = document.getElementById('toggleTrueStress').checked;
+    // 2. Condicional para mostrar la Interpolación Lineal
+    if (document.getElementById('toggleInterpolation').checked && x_E && y_E) {
+        var interpolationTrace = {
+            x: x_E, y: y_E, mode: 'lines',
+            line: { dash: 'dash', color: '#004e1a', width: 1.5 }, name: 'Interpolación lineal'
+        };
+        tracesToPlot.push(interpolationTrace);
+    }
 
-    // if (showTrueStress && processedData.trueStrain.length > 0) {
-    //     var trueTrace = {
-    //         x: processedData.trueStrain, 
-    //         y: processedData.trueStress, 
-    //         mode: 'lines', 
-    //         type: 'scattergl',
-    //         name: 'Curva Esfuerzo Real', 
-    //         line: { color: '#198754', width: 2, dash: 'dot' } // Verde y punteado
-    //     };
-    //     tracesToPlot.push(trueTrace);
-    // }
+    // 3. Condicional para mostrar la recta de Offset 0.2%
+    if (document.getElementById('toggleOffset').checked && offsetStrain && offsetStress) {
+        var offsetTrace = {
+            x: offsetStrain, y: offsetStress, mode: 'lines',
+            line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
+        };
+        tracesToPlot.push(offsetTrace);
+    }
 
+    // Configuración del layout
     var layout = {
         title: { text: 'Curva Esfuerzo vs Deformación', font: { family: 'system-ui, -apple-system, sans-serif', size: 18 } },
         xaxis: { title: 'Deformación Unitaria (mm/mm)', zeroline: true, showgrid: true },
         yaxis: { title: 'Esfuerzo (MPa)', zeroline: true, showgrid: true },
         hovermode: 'closest', 
         margin: { l: 60, r: 30, t: 50, b: 50 },
-        autosize: true, // Asegura que tome el tamaño del contenedor
-        annotations: [
-            { x: x_Sy, y: y_Sy, xref: 'x', yref: 'y', text: `Sy: ${Number(y_Sy.toFixed(2))} MPa`, showarrow: true, arrowhead: 2, ax: -40, ay: -30, font: { color: 'red' } }]
+        autosize: true,
+        annotations: []
     };
+
+    // 4. Solo mostrar la etiqueta flotante del "Sy" si el offset está visible
+    if (document.getElementById('toggleOffset').checked && x_Sy !== undefined && y_Sy !== undefined) {
+        layout.annotations.push({ 
+            x: x_Sy, y: y_Sy, xref: 'x', yref: 'y', 
+            text: `Sy: ${Number(y_Sy).toFixed(2)} MPa`, 
+            showarrow: true, arrowhead: 2, ax: -40, ay: -30, font: { color: 'red' } 
+        });
+    }
 
     // Configuramos responsive: true para evitar solapamientos al redimensionar la ventana
     Plotly.newPlot('graphDiv', tracesToPlot, layout, {responsive: true});
 }
+
+// ------------------------------------------------------------------
+// NUEVOS LISTENERS: Para actualizar la gráfica al hacer clic en los checkboxes
+// ------------------------------------------------------------------
+function updateGraphVisibility() {
+    if (lastGraphData) {
+        renderGraph(
+            lastGraphData.strain,
+            lastGraphData.strain_corrected, lastGraphData.stress, 
+            lastGraphData.offsetStrain, lastGraphData.offsetStress, 
+            lastGraphData.x_E, lastGraphData.y_E, 
+            lastGraphData.x_Sy, lastGraphData.y_Sy
+        );
+    }
+}
+
+
 
 // Captura todos los valores actuales de la UI, tanto de la probeta como de la configuración
 function obtenerDatosFormulario() {
@@ -124,7 +159,8 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         const offsetStress = [0, data.y_Sy];
         const y_Sy = data.y_Sy
         const x_Sy = data.x_Sy
-        renderGraph(data.strain_corrected, 
+        renderGraph(data.strain,
+                    data.strain_corrected, 
                     data.stress,
                     offsetStrain, offsetStress,
                     data.x_plot_elastic,
@@ -139,7 +175,11 @@ document.getElementById('fileInput').addEventListener('change', async function(e
     }
 });
 
+document.getElementById('toggleInterpolation').addEventListener('change', updateGraphVisibility);
+document.getElementById('toggleOffset').addEventListener('change', updateGraphVisibility);
+
 //
 // Escuchador del botón para procesar y aplicar las configuraciones elegidas
-document.getElementById('btnPrintReport').addEventListener('click', async function() { 
-});
+    document.getElementById('btnPrintReport').addEventListener('click', function() {
+        window.print();
+    });
