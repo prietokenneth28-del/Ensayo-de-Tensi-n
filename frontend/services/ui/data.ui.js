@@ -1,48 +1,56 @@
 
 // Funcion para graficar  
 // Variable global para almacenar los últimos datos traídos de Python
+// Variable global para almacenar los últimos datos traídos de Python
 let lastGraphData = null;
 
-// Funcion para graficar  
+const rangeMin = document.getElementById('rangeMin').value
+const rangeMax = document.getElementById('rangeMax').value
+
+
 function renderGraph(strain_corrected, strain, stress, stress_corrected, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
     // 1. Guardar los datos en memoria para redibujar sin llamar al backend
-    lastGraphData = { strain, strain_corrected, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy };
+    lastGraphData = { strain_corrected, strain, stress, stress_corrected, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy };
 
-    // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
     const graphContainer = document.getElementById('graphDiv');
     graphContainer.classList.remove('d-flex', 'justify-content-center', 'align-items-center', 'bg-light', 'border', 'rounded');
     
-    // Eliminar el mensaje de "Cargue un archivo..."
     const placeholder = document.getElementById('placeholderMsg');
-    if (placeholder) {
-        placeholder.remove();
-    }
+    if (placeholder) placeholder.remove();
 
     // --- LÓGICA DE COMPENSACIÓN DESDE EL FRONTEND ---
     const applySmoothing = document.getElementById('toggleSmoothing').checked;
     let tracesToPlot = [];
+
+    // Calculamos cuánto se desplazó la gráfica en Python restando los últimos puntos de ambos vectores
+    let epsilon_0 = strain[strain.length - 1] - strain_corrected[strain_corrected.length - 1];
+
     // 1. Trazas de la Curva Principal
-    if (document.getElementById('toggleSmoothing').checked) {
+    if (applySmoothing) {
         var curveTrace = {
             x: strain_corrected, 
             y: stress_corrected, 
             mode: 'lines', type: 'scattergl',
-            name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }}; 
-        tracesToPlot = [curveTrace];
+            name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
+        }; 
+        tracesToPlot.push(curveTrace);
     } else {
-            var curveTrace = {
+        var curveTrace = {
             x: strain, 
             y: stress, 
             mode: 'lines', type: 'scattergl',
-            name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }}; 
-        tracesToPlot = [curveTrace];
+            name: 'Curva Original (Sin compensar)', line: { color: '#0151ff', width: 2 }
+        }; 
+        tracesToPlot.push(curveTrace);
     }
-    
 
     // 2. Condicional para mostrar la Interpolación Lineal
-    if (document.getElementById('toggleInterpolation').checked && x_E && y_E) {      
+    if (document.getElementById('toggleInterpolation').checked && x_E && y_E) { 
+        // Si no hay suavizado, desplazamos la recta X sumando epsilon_0
+        let adjusted_x_E = applySmoothing ? x_E : x_E.map(val => val + epsilon_0);
+             
         var interpolationTrace = {
-            x: x_E, y: y_E, mode: 'lines',
+            x: adjusted_x_E, y: y_E, mode: 'lines',
             line: { dash: 'dash', color: '#004e1a', width: 1.5 }, name: 'Interpolación lineal'
         };
         tracesToPlot.push(interpolationTrace);
@@ -51,8 +59,10 @@ function renderGraph(strain_corrected, strain, stress, stress_corrected, offsetS
     // 3. Condicional para mostrar la recta de Offset 0.2%
     if (document.getElementById('toggleOffset').checked && offsetStrain && offsetStress) {
         // Desplazamos la recta en X si el suavizado está desactivado
+        let adjusted_offsetStrain = applySmoothing ? offsetStrain : offsetStrain.map(val => val + epsilon_0);
+
         var offsetTrace = {
-            x: offsetStrain, y: offsetStress, mode: 'lines',
+            x: adjusted_offsetStrain, y: offsetStress, mode: 'lines',
             line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
         };
         tracesToPlot.push(offsetTrace);
@@ -69,16 +79,17 @@ function renderGraph(strain_corrected, strain, stress, stress_corrected, offsetS
         annotations: []
     };
 
-    // 4. Solo mostrar la etiqueta flotante del "Sy" si el offset está visible
+    // 4. Mover la etiqueta flotante del "Sy" junto con la curva
     if (document.getElementById('toggleOffset').checked && x_Sy !== undefined && y_Sy !== undefined) {
+        let final_x_Sy = applySmoothing ? x_Sy : x_Sy + epsilon_0;
+
         layout.annotations.push({ 
-            x: x_Sy, y: y_Sy, xref: 'x', yref: 'y', 
+            x: final_x_Sy, y: y_Sy, xref: 'x', yref: 'y', 
             text: `Sy: ${Number(y_Sy).toFixed(2)} MPa`, 
             showarrow: true, arrowhead: 2, ax: -40, ay: -30, font: { color: 'red' } 
         });
     }
 
-    // Configuramos responsive: true para evitar solapamientos al redimensionar la ventana
     Plotly.newPlot('graphDiv', tracesToPlot, layout, {responsive: true});
 }
 
@@ -163,7 +174,8 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         document.getElementById('valE').innerText = `${data.E} GPa`;
         document.getElementById('valSy').innerText = `${data.Sy} MPa`;
         document.getElementById('valUts').innerText = `${data.Sut} MPa`;
-        
+        document.getElementById('valElong').innerText = `${data.Elong} %`;
+
         // 3. Pasar las variables directas a Plotly
         const offsetStrain = [0.002, data.x_Sy];
         const offsetStress = [0, data.y_Sy];

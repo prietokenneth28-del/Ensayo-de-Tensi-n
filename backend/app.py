@@ -99,10 +99,16 @@ def procesar_ensayo(load, stroke, A, L0, units):
     strain_graff = strain_corrected[strain_position]
     stress_graff = stress[strain_position] 
     
+
+    ## Porcentaje de elongacion:
+    elong = np.max(strain_corrected) * 100 
+
+
     return {
         "E": round(m / 1000, 2),
         "Sy": round(Sy, 2),
         "Sut": round(np.max(stress), 2),
+        "Elong": round(elong,2),
         "strain_corrected": strain_graff.tolist(),
         "strain": strain.tolist(),
         "stress": stress.tolist(),
