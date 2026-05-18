@@ -1,3 +1,4 @@
+
 // Funcion para graficar  
 function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
     // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
@@ -25,7 +26,7 @@ function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy,
     };
 
     // Arreglo base de trazas
-    let tracesToPlot = [curveTrace, offsetTrace, interpolationTrace];
+    let tracesToPlot = [curveTrace, interpolationTrace, offsetTrace];
 
     // Verificar si el switch de Esfuerzo Real está activado en el HTML
     const showTrueStress = document.getElementById('toggleTrueStress').checked;
@@ -55,6 +56,25 @@ function renderGraph(strain, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy,
 
     // Configuramos responsive: true para evitar solapamientos al redimensionar la ventana
     Plotly.newPlot('graphDiv', tracesToPlot, layout, {responsive: true});
+}
+
+// Captura todos los valores actuales de la UI, tanto de la probeta como de la configuración
+function obtenerDatosFormulario() {
+    return {
+        area: document.getElementById('inputArea').value,
+        length: document.getElementById('inputLength').value,
+        units: document.getElementById('unitSelect').value,
+        
+        // --- NUEVOS PARÁMETROS DE CONFIGURACIÓN ---
+        applySmoothing: document.getElementById('toggleSmoothing').checked,
+        // Opcional: si agregas inputs numéricos en el HTML para los rangos de la zona elástica
+        idxInicio: document.getElementById('inputIdxInicio')?.value || 50,
+        idxFin: document.getElementById('inputIdxFin')?.value || 80,
+
+        // Vectores de datos crudos cargados
+        load: globalRawData.map(p => p.load),
+        stroke: globalRawData.map(p => p.stroke)
+    };
 }
 
 // Enviar el archivo al backend 
@@ -120,6 +140,6 @@ document.getElementById('fileInput').addEventListener('change', async function(e
 });
 
 //
-document.getElementById('btnPrintReport').addEventListener('click', function() {
-    window.print();
+// Escuchador del botón para procesar y aplicar las configuraciones elegidas
+document.getElementById('btnPrintReport').addEventListener('click', async function() { 
 });
