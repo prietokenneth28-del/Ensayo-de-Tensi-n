@@ -4,8 +4,8 @@
 let lastGraphData = null;
 
 // Funcion para graficar  
-function renderGraph(strain, strain_corrected, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
-    // 1. Guardar los datos en memoria para poder redibujar sin llamar al backend
+function renderGraph(strain_corrected, strain, stress, stress_corrected, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy) {
+    // 1. Guardar los datos en memoria para redibujar sin llamar al backend
     lastGraphData = { strain, strain_corrected, stress, offsetStrain, offsetStress, x_E, y_E, x_Sy, y_Sy };
 
     // Limpiar clases estéticas iniciales del contenedor para que Plotly tome el control total
@@ -18,24 +18,29 @@ function renderGraph(strain, strain_corrected, stress, offsetStrain, offsetStres
         placeholder.remove();
     }
 
-    // Trazas (Líneas de la gráfica)
-     if (document.getElementById('toggleSmoothing').checked && strain_corrected && stress) {
-    var curveTrace = {
-        x: strain_corrected, y: stress, mode: 'lines', type: 'scattergl',
-        name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
-    };
-    } else {
+    // --- LÓGICA DE COMPENSACIÓN DESDE EL FRONTEND ---
+    const applySmoothing = document.getElementById('toggleSmoothing').checked;
+    let tracesToPlot = [];
+    // 1. Trazas de la Curva Principal
+    if (document.getElementById('toggleSmoothing').checked) {
         var curveTrace = {
-        x: strain, y: stress, mode: 'lines', type: 'scattergl',
-        name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }
-    };
-
+            x: strain_corrected, 
+            y: stress_corrected, 
+            mode: 'lines', type: 'scattergl',
+            name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }}; 
+        tracesToPlot = [curveTrace];
+    } else {
+            var curveTrace = {
+            x: strain, 
+            y: stress, 
+            mode: 'lines', type: 'scattergl',
+            name: 'Curva Esfuerzo - deformación', line: { color: '#0151ff', width: 2 }}; 
+        tracesToPlot = [curveTrace];
     }
-
-    let tracesToPlot = [curveTrace]; // La curva principal siempre se muestra
+    
 
     // 2. Condicional para mostrar la Interpolación Lineal
-    if (document.getElementById('toggleInterpolation').checked && x_E && y_E) {
+    if (document.getElementById('toggleInterpolation').checked && x_E && y_E) {      
         var interpolationTrace = {
             x: x_E, y: y_E, mode: 'lines',
             line: { dash: 'dash', color: '#004e1a', width: 1.5 }, name: 'Interpolación lineal'
@@ -45,6 +50,7 @@ function renderGraph(strain, strain_corrected, stress, offsetStrain, offsetStres
 
     // 3. Condicional para mostrar la recta de Offset 0.2%
     if (document.getElementById('toggleOffset').checked && offsetStrain && offsetStress) {
+        // Desplazamos la recta en X si el suavizado está desactivado
         var offsetTrace = {
             x: offsetStrain, y: offsetStress, mode: 'lines',
             line: { dash: 'dash', color: 'red', width: 1.5 }, name: 'Offset 0.2%'
@@ -77,20 +83,24 @@ function renderGraph(strain, strain_corrected, stress, offsetStrain, offsetStres
 }
 
 // ------------------------------------------------------------------
-// NUEVOS LISTENERS: Para actualizar la gráfica al hacer clic en los checkboxes
+// LISTENERS: Para actualizar la gráfica al hacer clic en los checkboxes
 // ------------------------------------------------------------------
 function updateGraphVisibility() {
     if (lastGraphData) {
         renderGraph(
-            lastGraphData.strain,
-            lastGraphData.strain_corrected, lastGraphData.stress, 
-            lastGraphData.offsetStrain, lastGraphData.offsetStress, 
-            lastGraphData.x_E, lastGraphData.y_E, 
-            lastGraphData.x_Sy, lastGraphData.y_Sy
+            lastGraphData.strain_corrected,
+            lastGraphData.strain, 
+            lastGraphData.stress, 
+            lastGraphData.stress_corrected, 
+            lastGraphData.offsetStrain, 
+            lastGraphData.offsetStress, 
+            lastGraphData.x_E, 
+            lastGraphData.y_E, 
+            lastGraphData.x_Sy, 
+            lastGraphData.y_Sy
         );
     }
 }
-
 
 
 // Captura todos los valores actuales de la UI, tanto de la probeta como de la configuración
@@ -159,9 +169,10 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         const offsetStress = [0, data.y_Sy];
         const y_Sy = data.y_Sy
         const x_Sy = data.x_Sy
-        renderGraph(data.strain,
-                    data.strain_corrected, 
+        renderGraph(data.strain_corrected,
+                    data.strain,
                     data.stress,
+                    data.stress_corrected,
                     offsetStrain, offsetStress,
                     data.x_plot_elastic,
                     data.y_plot_elastic,
@@ -175,8 +186,10 @@ document.getElementById('fileInput').addEventListener('change', async function(e
     }
 });
 
+document.getElementById('toggleSmoothing').addEventListener('change', updateGraphVisibility);
 document.getElementById('toggleInterpolation').addEventListener('change', updateGraphVisibility);
 document.getElementById('toggleOffset').addEventListener('change', updateGraphVisibility);
+
 
 //
 // Escuchador del botón para procesar y aplicar las configuraciones elegidas
