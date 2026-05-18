@@ -62,13 +62,16 @@
                             <span class="input-group-text">mm²</span>
                         </div>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <label for="inputLength" class="form-label small">Longitud Calibrada (L0)</label>
                         <div class="input-group input-group-sm">
                             <input type="number" class="form-control" id="inputLength" placeholder="Ej. 89.326">
                             <span class="input-group-text">mm</span>
                         </div>
                     </div>
+                    <button class="btn btn-warning btn-sm w-100 fw-bold shadow-sm" id="btnRecalculate">
+                        🔄 Recalcular Ensayo
+                    </button>
                 </div>
             </div>
 
@@ -159,19 +162,19 @@
         
         <h6 class="mb-3">Sistema de Unidades</h6>
         <select class="form-select mb-4" id="unitSelect" disabled>
-            <option value="si" selected>Sistema Internacional (MPa, mm)</option>
+            <option value="Metrico" selected>Sistema Internacional (MPa, mm)</option>
             <option value="imperial">Sistema Imperial (psi, in)</option>
         </select>
 
         <h6 class="mb-3">Parámetros de Elasticidad (Mínimos Cuadrados)</h6>
         <div class="mb-3">
             <label for="rangeMin" class="form-label small">Límite Inferior (Rango % UTS)</label>
-            <input type="range" class="form-range" min="5" max="20" step="1" id="rangeMin" value="10">
+            <input type="range" class="form-range" min="5" max="100" step="5" id="rangeMin" value="30">
             <output for="range4" id="rangeValue" aria-hidden="true"></output>
         </div>
         <div class="mb-4">
             <label for="rangeMax" class="form-label small">Límite Superior (Rango % UTS)</label>
-            <input type="range" class="form-range" min="30" max="60" step="1" id="rangeMax" value="40">
+            <input type="range" class="form-range" min="5" max="100" step="5" id="rangeMax" value="80">
             <output for="range4" id="rangeValue" aria-hidden="true"></output>
         </div>
     </div>

@@ -134,20 +134,35 @@ function obtenerDatosFormulario() {
 }
 
 // Enviar el archivo al backend 
-document.getElementById('fileInput').addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+// Variable para guardar el archivo y no tener que subirlo de nuevo
+let currentUploadedFile = null;
 
-    // Desplegamos el indicador de carga si lo tienes
+// Función centralizada para enviar al backend
+async function processAndRenderGraph(file) {
+    if (!file) {
+        alert("Por favor cargue un archivo de ensayo primero.");
+        return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('units', 'Metrico'); // O el id de tu unitSelect
+    formData.append('units', document.getElementById('unitSelect').value || 'Metrico');
     
-    // Si el usuario ya había digitado algo, se envía para sobreescribir el parser
+    // Capturar inputs manuales de geometría
     const inputArea = document.getElementById('inputArea').value;
     const inputLength = document.getElementById('inputLength').value;
     if (inputArea) formData.append('area', inputArea);
     if (inputLength) formData.append('length', inputLength);
+
+    // Capturar rangos del panel de configuración
+    const rangeMin = document.getElementById('rangeMin').value;
+    const rangeMax = document.getElementById('rangeMax').value;
+    if (rangeMin) formData.append('rangeMin', rangeMin);
+    if (rangeMax) formData.append('rangeMax', rangeMax);
+
+    // Botón en estado de carga (opcional, para feedback visual)
+    const btnRecalculate = document.getElementById('btnRecalculate');
+    if(btnRecalculate) btnRecalculate.innerText = "⏳ Procesando...";
 
     try {
         const response = await fetch('http://localhost:5000/upload-and-calculate', {
@@ -159,10 +174,11 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         
         if (data.error) {
             alert(data.error);
+            if(btnRecalculate) btnRecalculate.innerText = "🔄 Recalcular Ensayo";
             return;
         }
 
-        // 1. Llenar inputs de UI con lo que Python encontró y parseó
+        // Llenar inputs de UI con lo que Python parseó
         document.getElementById('inputArea').value = data.parsed_area;
         document.getElementById('inputLength').value = data.parsed_length;
         const cellArea = document.querySelector('#metadataBody tr:nth-child(1) td');
@@ -170,32 +186,49 @@ document.getElementById('fileInput').addEventListener('change', async function(e
         if (cellArea) cellArea.innerText = data.parsed_area + " mm²";
         if (cellLength) cellLength.innerText = data.parsed_length + " mm";
 
-        // 2. Actualizar las medallas/badges de ingeniería
+        // Actualizar medallas de ingeniería
         document.getElementById('valE').innerText = `${data.E} GPa`;
         document.getElementById('valSy').innerText = `${data.Sy} MPa`;
         document.getElementById('valUts').innerText = `${data.Sut} MPa`;
         document.getElementById('valElong').innerText = `${data.Elong} %`;
 
-        // 3. Pasar las variables directas a Plotly
+        // Pasar las variables directas a Plotly
         const offsetStrain = [0.002, data.x_Sy];
         const offsetStress = [0, data.y_Sy];
-        const y_Sy = data.y_Sy
-        const x_Sy = data.x_Sy
-        renderGraph(data.strain_corrected,
-                    data.strain,
-                    data.stress,
-                    data.stress_corrected,
-                    offsetStrain, offsetStress,
-                    data.x_plot_elastic,
-                    data.y_plot_elastic,
-                    x_Sy, y_Sy);
+        renderGraph(data.strain_corrected, 
+            data.strain, 
+            data.stress, 
+            data.stress_corrected, 
+            offsetStrain, offsetStress, 
+            data.x_plot_elastic, 
+            data.y_plot_elastic, 
+            data.x_Sy, 
+            data.y_Sy);
         
         document.getElementById('btnPrintReport').disabled = false;
-
+        
     } catch (error) {
         console.error("Error en la comunicación:", error);
         alert("Hubo un problema al procesar el documento en el servidor.");
+    } finally {
+        // Restaurar el texto del botón
+        if(btnRecalculate) btnRecalculate.innerText = "🔄 Recalcular Ensayo";
     }
+}
+
+// ------------------------------------------------------------------
+// LISTENERS PRINCIPALES DE CARGA Y RECALCULO
+// ------------------------------------------------------------------
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    currentUploadedFile = file; // Guardamos el archivo en memoria
+    processAndRenderGraph(currentUploadedFile);
+});
+
+// Listener para el nuevo botón de Recalcular
+document.getElementById('btnRecalculate').addEventListener('click', function() {
+    processAndRenderGraph(currentUploadedFile);
 });
 
 document.getElementById('toggleSmoothing').addEventListener('change', updateGraphVisibility);

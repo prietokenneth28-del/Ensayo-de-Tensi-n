@@ -59,7 +59,8 @@ def parse_document(text):
 
     return area, length, load_list, stroke_list
 
-def procesar_ensayo(load, stroke, A, L0, units):
+# Actualiza la firma de la función para recibir los rangos
+def procesar_ensayo(load, stroke, A, L0, units, range_min=10.0, range_max=40.0):
     load = np.array(load)
     stroke = np.array(stroke)
     
@@ -70,7 +71,23 @@ def procesar_ensayo(load, stroke, A, L0, units):
     stress = force / A
     strain = stroke / L0
 
-    idx_inicio, idx_fin = 50, 80 
+    # --- LÓGICA DINÁMICA DE RANGOS ---
+    # Encontrar el Esfuerzo Máximo (UTS)
+    UTS = np.max(stress)
+    
+    # Calcular los límites en MPa según el porcentaje enviado por el usuario
+    limite_inferior = UTS * (range_min / 100.0)
+    limite_superior = UTS * (range_max / 100.0)
+
+    # np.argmax retorna el primer índice donde la condición se cumple (True)
+    idx_inicio = np.argmax(stress >= limite_inferior)
+    idx_fin = np.argmax(stress >= limite_superior)
+    
+    # Prevenir que los índices choquen en curvas irregulares
+    if idx_inicio >= idx_fin:
+        idx_fin = idx_inicio + 1
+
+    # Regresión lineal usando la porción exacta solicitada por el usuario
     m, b_lin = np.polyfit(strain[idx_inicio:idx_fin], stress[idx_inicio:idx_fin], 1)
     epsilon_0 = -b_lin / m
     strain_corrected = strain - epsilon_0
@@ -87,28 +104,20 @@ def procesar_ensayo(load, stroke, A, L0, units):
     Sy = stress[idx_real]
     x_Sy = strain_corrected[idx_real]
     
-    ##Linea del modulo de Young:
+    ## Linea del modulo de Young
     y_plot_elastic = np.linspace(0, Sy, 100)
     x_plot_elastic = y_plot_elastic / m
 
-    ## Listas de variables para graficar:
-
+    ## Listas de variables para graficar
     strain_position = np.where(strain_corrected >= 0)
-
-
     strain_graff = strain_corrected[strain_position]
     stress_graff = stress[strain_position] 
     
-
-    ## Porcentaje de elongacion:
-    elong = np.max(strain_corrected) * 100 
-
-
     return {
         "E": round(m / 1000, 2),
         "Sy": round(Sy, 2),
-        "Sut": round(np.max(stress), 2),
-        "Elong": round(elong,2),
+        "Sut": round(UTS, 2),
+        "Elong": round(np.max(strain_corrected) * 100,2),
         "strain_corrected": strain_graff.tolist(),
         "strain": strain.tolist(),
         "stress": stress.tolist(),
@@ -128,18 +137,23 @@ def upload_and_calculate():
     text = file.read().decode('utf-8')
     units = request.form.get('units', 'Metrico')
     
-    # 1. Parsear el archivo con Python
+    # Parsear el archivo con Python
     parsed_area, parsed_length, load, stroke = parse_document(text)
     
-    # 2. Preferir los valores ingresados manualmente por el usuario si existen
+    # Capturar dimensiones (priorizando las ingresadas manualmente)
     area = float(request.form.get('area')) if request.form.get('area') else parsed_area
     length = float(request.form.get('length')) if request.form.get('length') else parsed_length
+
+    # Extraer los rangos desde el panel de configuración (con valores por defecto 10 y 40)
+    range_min = float(request.form.get('rangeMin', 50))
+    range_max = float(request.form.get('rangeMax', 80))
 
     if not area or not length:
         return jsonify({"error": "Falta el área o la longitud de la probeta", "area": area, "length": length}), 400
 
     try:
-        results = procesar_ensayo(load, stroke, area, length, units)
+        # Enviar los límites a la función procesadora
+        results = procesar_ensayo(load, stroke, area, length, units, range_min, range_max)
         results['parsed_area'] = area
         results['parsed_length'] = length
         return jsonify(results)
