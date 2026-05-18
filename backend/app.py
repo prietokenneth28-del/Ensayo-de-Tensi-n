@@ -2,9 +2,59 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
 import re
+import openpyxl
+import io
 
 app = Flask(__name__)
 CORS(app)
+
+
+def parse_excel(file_bytes):
+    """
+    Lee un archivo binario de Excel (.xlsx o .xlsm) en memoria,
+    extrayendo las dimensiones y los vectores tabulares del ensayo.
+    """
+    # Cargar el libro desde los bytes en memoria (data_only=True extrae valores, no fórmulas)
+    wb = openpyxl.load_workbook(io.BytesIO(file_bytes), data_only=True)
+    sheet = wb.active  # Toma la hoja por defecto o usa wb["NombreDeLaHoja"]
+
+    # 1. Extraer Metadatos 
+    area = sheet['D1'].value
+    length = sheet['D2'].value
+
+    # Forzar la conversión a flotante por si vienen como texto
+    try: area = float(area) if area else None
+    except ValueError: area = None
+
+    try: length = float(length) if length else None
+    except ValueError: length = None
+
+    # 2. Extraer Datos Tabulares (Load y Stroke)
+    load_list = []
+    stroke_list = []
+
+    fila_inicio = 2
+    for row in range(fila_inicio, sheet.max_row + 1):
+        load_cell = sheet.cell(row=row, column=2).value
+        stroke_cell = sheet.cell(row=row, column=1).value
+
+        # Romper el ciclo si encontramos celdas vacías al final de la tabla
+        if load_cell is None or stroke_cell is None:
+            continue
+
+        try:
+            load_list.append(float(load_cell))
+            stroke_list.append(float(stroke_cell))
+        except ValueError:
+            # Ignora filas con texto o encabezados intermedios
+            continue
+
+    # Normalizar restando el valor inicial (idéntico al pipeline de archivos .txt)
+    if load_list:
+        load_list = [l / 9.81 for l in load_list]
+
+
+    return area, length, load_list, stroke_list
 
 def parse_document(text):
     """Extrae el área, la longitud y las columnas de datos crudos del archivo txt"""
@@ -134,25 +184,35 @@ def upload_and_calculate():
         return jsonify({"error": "No se proporcionó ningún archivo"}), 400
         
     file = request.files['file']
-    text = file.read().decode('utf-8')
+    filename = file.filename.lower()
     units = request.form.get('units', 'Metrico')
+
+
+    # --- ENRUTAMIENTO INTELIGENTE SEGÚN EXTENSIÓN ---
+    if filename.endswith(('.xlsx', '.xlsm')):
+        # 1. Lectura BINARIA para archivos de Excel (No se decodifica como texto)
+        file_bytes = file.read() 
+        parsed_area, parsed_length, load, stroke = parse_excel(file_bytes)
+    else:
+        # 2. Lectura de TEXTO exclusivamente para .txt o .csv
+        text = file.read().decode('utf-8')
+        parsed_area, parsed_length, load, stroke = parse_document(text)
     
-    # Parsear el archivo con Python
-    parsed_area, parsed_length, load, stroke = parse_document(text)
-    
-    # Capturar dimensiones (priorizando las ingresadas manualmente)
+    # Preferir dimensiones ingresadas manualmente por el usuario en pantalla si existen
     area = float(request.form.get('area')) if request.form.get('area') else parsed_area
     length = float(request.form.get('length')) if request.form.get('length') else parsed_length
 
-    # Extraer los rangos desde el panel de configuración (con valores por defecto 10 y 40)
-    range_min = float(request.form.get('rangeMin', 50))
-    range_max = float(request.form.get('rangeMax', 80))
+    range_min = float(request.form.get('rangeMin', 10.0))
+    range_max = float(request.form.get('rangeMax', 40.0))
 
     if not area or not length:
         return jsonify({"error": "Falta el área o la longitud de la probeta", "area": area, "length": length}), 400
 
+    if not load or not stroke:
+        return jsonify({"error": "No se pudieron extraer datos tabulares válidos del archivo"}), 400
+
     try:
-        # Enviar los límites a la función procesadora
+        # El motor de cálculo matemático sigue intacto y unificado
         results = procesar_ensayo(load, stroke, area, length, units, range_min, range_max)
         results['parsed_area'] = area
         results['parsed_length'] = length
