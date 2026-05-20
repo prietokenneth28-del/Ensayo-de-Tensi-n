@@ -4,10 +4,18 @@ import numpy as np
 import re
 import openpyxl
 import io
+import os
 
+# 1. Obtener la ruta absoluta de la carpeta donde está app.py (backend/)
+base_dir = os.path.abspath(os.path.dirname(__file__))
 
+# 2. Construir las rutas hacia la carpeta frontend
+# ".." significa "subir un nivel" (salir de backend y entrar a frontend)
+template_dir = os.path.join(base_dir, '../frontend/templates')
+static_dir = os.path.join(base_dir, '../frontend')
 
-app = Flask(__name__, template_folder='templates', static_folder='frontend')
+# 3. Inicializar Flask con las rutas correctas
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 CORS(app)
 
