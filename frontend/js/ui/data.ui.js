@@ -23,7 +23,6 @@ class EnsayoTraccion {
         
         this.graphDiv = this.container.querySelector('.graph-div');
         this.placeholderMsg = this.container.querySelector('.placeholder-msg');
-        this.btnPrint = this.container.querySelector('.btn-print-report');
 
         // Personalizar título
         this.headerTitle.innerText = `Ensayo ${this.testId}`;
@@ -66,9 +65,6 @@ class EnsayoTraccion {
             this.processAndRenderGraph();
         });
 
-        if (this.btnPrint) {
-            this.btnPrint.addEventListener('click', () => window.print());
-        }
     }
 
     async processAndRenderGraph() {
@@ -121,7 +117,8 @@ class EnsayoTraccion {
                 offsetStress: [0, data.y_Sy]
             };
 
-            if (this.btnPrint) this.btnPrint.disabled = false;
+            const globalPrintBtn = document.getElementById('btnPrintGlobalReport');
+            if (globalPrintBtn) globalPrintBtn.disabled = false;
 
             this.updateGraphVisibility();
             
@@ -205,9 +202,15 @@ class EnsayoTraccion {
 // CONTROLADOR GLOBAL (El "Main")
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    const btnAddTest = document.getElementById('btnAddTest');
+const btnAddTest = document.getElementById('btnAddTest');
     const testsContainer = document.getElementById('testsContainer');
     const template = document.getElementById('testSectionTemplate');
+
+    // --- NUEVO CÓDIGO DEL BOTÓN DE REPORTE GLOBAL ---
+    const btnPrintGlobal = document.getElementById('btnPrintGlobalReport');
+    if (btnPrintGlobal) {
+        btnPrintGlobal.addEventListener('click', () => window.print());
+    }
 
     function crearNuevoEnsayo() {
         // Clonamos el contenido del template (El molde HTML)

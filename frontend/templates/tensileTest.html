@@ -24,19 +24,18 @@
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid px-4 mt-4">
 
-<div class="container text-right">
-    <div class="row">
-        <div class="column">
-            <button id="btnAddTest" class="btn btn-success fw-bold shadow-sm">
-                ➕ Agregar Nuevo Ensayo
-            </button>
-        </div>
-        <div class="column">
-            <button class="btn btn-primary btn-print-report" disabled id="btn-print-report">📄 Generar Reporte</button>
-        </div>
-    </div>
     <div id="testsContainer"></div>
+
+    <div class="d-flex justify-content-end gap-3 mb-5 mt-4 d-print-none">
+        <button id="btnPrintGlobalReport" class="btn btn-primary fw-bold shadow-sm" disabled>
+            📄 Generar Reporte Completo
+        </button>
+        <button id="btnAddTest" class="btn btn-success fw-bold shadow-sm">
+            ➕ Agregar Nuevo Ensayo
+        </button>
+    </div>
 </div>
 
 <template id="testSectionTemplate">
@@ -90,7 +89,7 @@
                 </ul>
             </div>
             
-        </div>
+            </div>
 
         <div class="col-lg-9 col-md-8">
             <div class="d-flex justify-content-between align-items-start mb-2 d-print-none">
@@ -121,7 +120,6 @@
     </div>
 </template>
 
-
 <div class="offcanvas offcanvas-end" tabindex="-1" id="settingsPanel" aria-labelledby="settingsPanelLabel">
     <div class="offcanvas-header bg-dark text-white">
         <h5 class="offcanvas-title" id="settingsPanelLabel">Configuración del Sistema</h5>
@@ -146,7 +144,7 @@
             <output id="rangeValueMax"></output>
         </div>
     </div>
-
+</div>
 {% endblock %}
 
 {% block scripts %}
