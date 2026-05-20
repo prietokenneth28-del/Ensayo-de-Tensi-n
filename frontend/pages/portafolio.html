@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenneth Prieto | Portafolio</title>
+    <style>
+        /* Estilos Base y Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Encabezado / Hero Section */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Contenedor Principal */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Sección de Herramientas */
+        .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+            font-size: 2rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Tarjetas de Proyecto */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2980b9;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #ecf0f1;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 3rem;
+        }
+    </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <header>
+        <h1>Kenneth Rogers Prieto Santana</h1>
+        <p>Tecnólogo en Mecánica Industrial  de la Universidad Distrital Francisco Jose de Caldas con experiencia en el desarrollo de software. Transformando análisis técnico y procesamiento de datos en herramientas web interactivas.</p>
+    </header>
+
+    <div class="container">
+        <h2 class="section-title">Mis Herramientas y Aplicaciones</h2>
+        
+        <div class="tools-grid">
+            <div class="card">
+                <h3>Analizador de Ensayos de Tracción</h3>
+                <p>Aplicación web para el procesamiento automatizado de datos de maquinaria de laboratorio. Calcula propiedades mecánicas clave como el límite de fluencia, módulo elástico y resistencia máxima a partir de archivos de datos crudos.</p>
+                <div class="tags">
+                    <span class="tag">Python</span>
+                    <span class="tag">Flask</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Ciencia de Materiales</span>
+                </div>
+                <a href="./tensileTest.html" class="btn">Abrir Herramienta</a>
+            </div>
+
+            <div class="card">
+                <h3>Calculadora de Reacciones en Vigas</h3>
+                <p>Herramienta interactiva para el análisis estructural. Permite definir parámetros de rigidez y calcular momentos y reacciones utilizando métodos numéricos avanzados.</p>
+                <div class="tags">
+                    <span class="tag">Análisis Estructural</span>
+                    <span class="tag">Método de Cross</span>
+                    <span class="tag">JavaScript</span>
+                </div>
+                <a href="#" class="btn">Próximamente</a>
+            </div>
+            
+            <div class="card">
+                <h3>Simulador de Cinemática</h3>
+                <p>Módulo de simulación para analizar el movimiento y control de sistemas robóticos multipata mediante representaciones visuales interactivas.</p>
+                <div class="tags">
+                    <span class="tag">Robótica</span>
+                    <span class="tag">Simulación</span>
+                    <span class="tag">3D</span>
+                </div>
+                <a href="#" class="btn">Próximamente</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Contacto: kennethprieto20@gmail.com  <a href="https://github.com/prietokenneth28-del" style="color: #3498db; text-decoration: none;"> <i class="bi bi-github"></i> </a>   <a href="www.linkedin.com/in/kenneth-prieto-2175863b0" style="color: #3498db; text-decoration: none;"> <i class="bi bi-linkedin"></i> </a></p>
+    </footer>
+
+</body>
+</html>

@@ -1,59 +1,41 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Tracción de Materiales</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% extends 'base.html' %}
+
+{% block title %}Análisis de Tracción de Materiales{% endblock %}
+
+{% block css %}
 <style>
-        /* Estilos específicos para generar el reporte en PDF/Impresora */
-        @media print {
-            body { background-color: white !important; }
-            .navbar, .offcanvas, #fileInput, label[for="fileInput"], hr, .btn, .btn-group {
-                display: none !important; /* Oculta navegación y controles */
-            }
-            .col-lg-3 { 
-                width: 100% !important; /* Expande la barra lateral hacia arriba */
-                margin-bottom: 20px;
-            }
-            .col-lg-9 {
-                width: 100% !important; /* Expande el gráfico */
-            }
-            .card { border: none !important; box-shadow: none !important; }
-            .card-header { background-color: transparent !important; color: black !important; border-bottom: 2px solid black; }
+    /* Estilos específicos para generar el reporte en PDF/Impresora */
+    @media print {
+        body { background-color: white !important; }
+        .navbar, .offcanvas, #fileInput, label[for="fileInput"], hr, .btn, .btn-group {
+            display: none !important; 
         }
-    </style>
-<body class="bg-light">
+        .col-lg-3 { 
+            width: 100% !important; 
+            margin-bottom: 20px;
+        }
+        .col-lg-9 {
+            width: 100% !important; 
+        }
+        .card { border: none !important; box-shadow: none !important; }
+        .card-header { background-color: transparent !important; color: black !important; border-bottom: 2px solid black; }
+    }
+</style>
+{% endblock %}
 
-<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Plataforma de Caracterización Mecánica</span>
-        <div class="d-flex">
-            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#settingsPanel">
-                ⚙️ Configuración
-            </button>
-        </div>
-    </div>
-</nav>
-
+{% block content %}
 <div class="container-fluid px-4">
     <div class="row g-4">
         
         <div class="col-lg-3 col-md-4">
-            
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white fw-bold">
-                    1. Ingreso de Datos
-                </div>
+                <div class="card-header bg-primary text-white fw-bold">1. Ingreso de Datos</div>
                 <div class="card-body"> 
                     <label for="fileInput" class="form-label">Cargar archivo del ensayo (.txt, .xlsm)</label>
                     <div class="input-group mb-3">
                         <input type="file" class="form-control" id="fileInput" accept=".txt,.csv,.xlsx,.xlsm">
                     </div>
-                    
                     <hr>
-                    
                     <h6 class="text-muted mb-3">Edición Manual de Dimensiones</h6>
                     <div class="mb-2">
                         <label for="inputArea" class="form-label small">Área Transversal (A0)</label>
@@ -76,7 +58,7 @@
             </div>
 
             <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">Datos extraidos del Archivo</div>
+                <div class="card-header fw-bold">Datos extraídos del Archivo</div>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover mb-0 small" id="metadataTable">
                         <tbody id="metadataBody">
@@ -90,56 +72,44 @@
                 <div class="card-header bg-success text-white fw-bold">Propiedades Calculadas</div>
                 <ul class="list-group list-group-flush" id="resultsList">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Módulo de Young (E)
-                        <span class="badge bg-secondary rounded-pill" id="valE">-- GPa</span>
+                        Módulo de Young (E) <span class="badge bg-secondary rounded-pill" id="valE">-- GPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Esfuerzo Fluencia (0.2%)
-                        <span class="badge bg-secondary rounded-pill" id="valSy">-- MPa</span>
+                        Esfuerzo Fluencia (0.2%) <span class="badge bg-secondary rounded-pill" id="valSy">-- MPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Esfuerzo Último (UTS)
-                        <span class="badge bg-secondary rounded-pill" id="valUts">-- MPa</span>
+                        Esfuerzo Último (UTS) <span class="badge bg-secondary rounded-pill" id="valUts">-- MPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Elongación a Rotura
-                        <span class="badge bg-secondary rounded-pill" id="valElong">-- %</span>
+                        Elongación a Rotura <span class="badge bg-secondary rounded-pill" id="valElong">-- %</span>
                     </li>
                 </ul>
             </div>
             
             <div class="d-grid gap-2 mb-4">
-                <button class="btn btn-outline-primary" id="btnDownloadCSV" disabled>
-                    ⬇️ Descargar Datos Procesados (CSV)
-                </button>
-                <button class="btn btn-primary" id="btnPrintReport" disabled>
-                    📄 Generar Reporte
-                </button>
+                <button class="btn btn-outline-primary" id="btnDownloadCSV" disabled>⬇️ Descargar Datos Procesados</button>
+                <button class="btn btn-primary" id="btnPrintReport" disabled>📄 Generar Reporte</button>
             </div>
-
         </div>
 
         <div class="col-lg-9 col-md-8">
-            
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="mb-0 mt-1">Curva Esfuerzo-Deformación</h5>
-            <div class="d-flex flex-column align-items-end">
-                <div class="btn-group btn-group-sm mb-2" role="group">
-                    <input type="checkbox" class="btn-check" id="toggleTrueStress" autocomplete="off">
-                    <label class="btn btn-outline-secondary" for="toggleTrueStress">Esfuerzo Real vs Ingeniería</label>
-                    
-                    <input type="checkbox" class="btn-check" id="toggleSmoothing" autocomplete="off">
-                    <label class="btn btn-outline-secondary" for="toggleSmoothing">Aplicar Compensación de Punta</label>
-                </div>
-                <div class="btn-group btn-group-sm" role="group">
-                    <input type="checkbox" class="btn-check" id="toggleInterpolation" checked autocomplete="off">
-                    <label class="btn btn-outline-success" for="toggleInterpolation">Ver Rango Elástico</label>
-                    
-                    <input type="checkbox" class="btn-check" id="toggleOffset" checked autocomplete="off">
-                    <label class="btn btn-outline-danger" for="toggleOffset">Ver Offset 0.2%</label>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="mb-0 mt-1">Curva Esfuerzo-Deformación</h5>
+                <div class="d-flex flex-column align-items-end">
+                    <div class="btn-group btn-group-sm mb-2" role="group">
+                        <input type="checkbox" class="btn-check" id="toggleTrueStress" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="toggleTrueStress">Esfuerzo Real vs Ingeniería</label>
+                        <input type="checkbox" class="btn-check" id="toggleSmoothing" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="toggleSmoothing">Aplicar Compensación de Punta</label>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="checkbox" class="btn-check" id="toggleInterpolation" checked autocomplete="off">
+                        <label class="btn btn-outline-success" for="toggleInterpolation">Ver Rango Elástico</label>
+                        <input type="checkbox" class="btn-check" id="toggleOffset" checked autocomplete="off">
+                        <label class="btn btn-outline-danger" for="toggleOffset">Ver Offset 0.2%</label>
+                    </div>
                 </div>
             </div>
-        </div>
 
             <div class="card shadow-sm w-100" style="min-height: 600px;">
                 <div class="card-body d-flex flex-column p-2">
@@ -148,7 +118,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -159,7 +128,6 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-        
         <h6 class="mb-3">Sistema de Unidades</h6>
         <select class="form-select mb-4" id="unitSelect" disabled>
             <option value="Metrico" selected>Sistema Internacional (MPa, mm)</option>
@@ -170,35 +138,18 @@
         <div class="mb-3">
             <label for="rangeMin" class="form-label small">Límite Inferior (Rango % UTS)</label>
             <input type="range" class="form-range" min="5" max="100" step="5" id="rangeMin" value="30">
-            <output for="range4" id="rangeValue" aria-hidden="true"></output>
+            <output id="rangeValueMin"></output>
         </div>
         <div class="mb-4">
             <label for="rangeMax" class="form-label small">Límite Superior (Rango % UTS)</label>
             <input type="range" class="form-range" min="5" max="100" step="5" id="rangeMax" value="80">
-            <output for="range4" id="rangeValue" aria-hidden="true"></output>
+            <output id="rangeValueMax"></output>
         </div>
     </div>
 </div>
-<footer class="bg-dark text-white text-center py-3 mt-5 d-print-none shadow-sm">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <small class="mb-0">
-                    &copy; 2026 Plataforma de Caracterización Mecánica | Herramienta de Análisis de Tracción
-                </small>
-            </div>
-            <div class="col-12 mt-1">
-                <small class="mb-0">
-                    Desarrollado por Kenneth Prieto.
-                </small>
-            </div>
-        </div>
-    </div>
-</footer>
+{% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-<script type="module" src="../services/main.js"></script>
-
-</body>
-</html>
+<script type="module" src="{{ url_for('static', filename='frontend/services/main.js') }}"></script>
+{% endblock %}
