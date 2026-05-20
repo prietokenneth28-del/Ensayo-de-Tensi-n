@@ -8,6 +8,7 @@ import io
 
 
 app = Flask(__name__, template_folder='templates', static_folder='frontend')
+
 CORS(app)
 
 
@@ -221,6 +222,16 @@ def upload_and_calculate():
         return jsonify(results)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@app.route('/')
+def portafolio():
+    # Renderiza la página de inicio (Landing Page)
+    return render_template('portafolio.html')
+
+@app.route('/tensile-test')
+def tensile_test():
+    # Renderiza la herramienta de tracción
+    return render_template('tensileTest.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

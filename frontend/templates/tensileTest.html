@@ -151,5 +151,5 @@
 
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-<script type="module" src="../js/main.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}
