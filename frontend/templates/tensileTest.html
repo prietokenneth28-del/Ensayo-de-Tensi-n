@@ -24,103 +24,103 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4">
-    <div class="row g-4">
+
+<div class="container text-right">
+    <div class="row">
+        <div class="column">
+            <button id="btnAddTest" class="btn btn-success fw-bold shadow-sm">
+                ➕ Agregar Nuevo Ensayo
+            </button>
+        </div>
+        <div class="column">
+            <button class="btn btn-primary btn-print-report" disabled id="btn-print-report">📄 Generar Reporte</button>
+        </div>
+    </div>
+    <div id="testsContainer"></div>
+</div>
+
+<template id="testSectionTemplate">
+    <div class="test-section row g-4 mb-5 pb-4 border-bottom border-secondary border-opacity-25">
         
         <div class="col-lg-3 col-md-4">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white fw-bold">1. Ingreso de Datos</div>
+                <div class="card-header bg-primary text-white fw-bold header-title">Ensayo</div>
                 <div class="card-body"> 
-                    <label for="fileInput" class="form-label">Cargar archivo del ensayo (.txt, .xlsm)</label>
+                    <label class="form-label small">Cargar archivo (.txt, .xlsm)</label>
                     <div class="input-group mb-3">
-                        <input type="file" class="form-control" id="fileInput" accept=".txt,.csv,.xlsx,.xlsm">
+                        <input type="file" class="form-control file-input" accept=".txt,.csv,.xlsx,.xlsm">
                     </div>
                     <hr>
                     <h6 class="text-muted mb-3">Edición Manual de Dimensiones</h6>
                     <div class="mb-2">
-                        <label for="inputArea" class="form-label small">Área Transversal (A0)</label>
+                        <label class="form-label small">Área Transversal (A0)</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="inputArea" placeholder="Ej. 76.23">
+                            <input type="number" class="form-control input-area" placeholder="Ej. 76.23">
                             <span class="input-group-text">mm²</span>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="inputLength" class="form-label small">Longitud Calibrada (L0)</label>
+                        <label class="form-label small">Longitud Calibrada (L0)</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" class="form-control" id="inputLength" placeholder="Ej. 89.326">
+                            <input type="number" class="form-control input-length" placeholder="Ej. 89.326">
                             <span class="input-group-text">mm</span>
                         </div>
                     </div>
-                    <button class="btn btn-warning btn-sm w-100 fw-bold shadow-sm" id="btnRecalculate">
+                    <button class="btn btn-warning btn-sm w-100 fw-bold shadow-sm btn-recalculate">
                         🔄 Recalcular Ensayo
                     </button>
                 </div>
             </div>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header fw-bold">Datos extraídos del Archivo</div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover mb-0 small" id="metadataTable">
-                        <tbody id="metadataBody">
-                            <tr><td colspan="2" class="text-center text-muted">Esperando datos...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <div class="card shadow-sm mb-4 border-success">
                 <div class="card-header bg-success text-white fw-bold">Propiedades Calculadas</div>
-                <ul class="list-group list-group-flush" id="resultsList">
+                <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Módulo de Young (E) <span class="badge bg-secondary rounded-pill" id="valE">-- GPa</span>
+                        E <span class="badge bg-secondary rounded-pill val-e">-- GPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Esfuerzo Fluencia (0.2%) <span class="badge bg-secondary rounded-pill" id="valSy">-- MPa</span>
+                        Sy (0.2%) <span class="badge bg-secondary rounded-pill val-sy">-- MPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Esfuerzo Último (UTS) <span class="badge bg-secondary rounded-pill" id="valUts">-- MPa</span>
+                        UTS <span class="badge bg-secondary rounded-pill val-uts">-- MPa</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Elongación a Rotura <span class="badge bg-secondary rounded-pill" id="valElong">-- %</span>
+                        Elongación <span class="badge bg-secondary rounded-pill val-elong">-- %</span>
                     </li>
                 </ul>
             </div>
             
-            <div class="d-grid gap-2 mb-4">
-                <button class="btn btn-outline-primary" id="btnDownloadCSV" disabled>⬇️ Descargar Datos Procesados</button>
-                <button class="btn btn-primary" id="btnPrintReport" disabled>📄 Generar Reporte</button>
-            </div>
         </div>
 
         <div class="col-lg-9 col-md-8">
-            <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-2 d-print-none">
                 <h5 class="mb-0 mt-1">Curva Esfuerzo-Deformación</h5>
                 <div class="d-flex flex-column align-items-end">
                     <div class="btn-group btn-group-sm mb-2" role="group">
-                        <input type="checkbox" class="btn-check" id="toggleTrueStress" autocomplete="off">
-                        <label class="btn btn-outline-secondary" for="toggleTrueStress">Esfuerzo Real vs Ingeniería</label>
-                        <input type="checkbox" class="btn-check" id="toggleSmoothing" autocomplete="off">
-                        <label class="btn btn-outline-secondary" for="toggleSmoothing">Aplicar Compensación de Punta</label>
+                        <input type="checkbox" class="btn-check toggle-smoothing" autocomplete="off">
+                        <label class="btn btn-outline-secondary label-smoothing">Compensación de Punta</label>
                     </div>
                     <div class="btn-group btn-group-sm" role="group">
-                        <input type="checkbox" class="btn-check" id="toggleInterpolation" checked autocomplete="off">
-                        <label class="btn btn-outline-success" for="toggleInterpolation">Ver Rango Elástico</label>
-                        <input type="checkbox" class="btn-check" id="toggleOffset" checked autocomplete="off">
-                        <label class="btn btn-outline-danger" for="toggleOffset">Ver Offset 0.2%</label>
+                        <input type="checkbox" class="btn-check toggle-interpolation" checked autocomplete="off">
+                        <label class="btn btn-outline-success label-interpolation">Ver Rango Elástico</label>
+                        
+                        <input type="checkbox" class="btn-check toggle-offset" checked autocomplete="off">
+                        <label class="btn btn-outline-danger label-offset">Ver Offset 0.2%</label>
                     </div>
                 </div>
             </div>
 
-            <div class="card shadow-sm w-100" style="min-height: 600px;">
+            <div class="card shadow-sm w-100" style="min-height: 550px;">
                 <div class="card-body d-flex flex-column p-2">
-                    <div id="graphDiv" class="flex-grow-1 d-flex justify-content-center align-items-center bg-light border rounded">
-                        <span id="placeholderMsg" class="text-muted">Cargue un archivo para visualizar la gráfica</span>
+                    <div class="graph-div flex-grow-1 d-flex justify-content-center align-items-center bg-light border rounded">
+                        <span class="text-muted placeholder-msg">Cargue un archivo para visualizar la gráfica</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</template>
+
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="settingsPanel" aria-labelledby="settingsPanelLabel">
     <div class="offcanvas-header bg-dark text-white">
@@ -146,7 +146,7 @@
             <output id="rangeValueMax"></output>
         </div>
     </div>
-</div>
+
 {% endblock %}
 
 {% block scripts %}
