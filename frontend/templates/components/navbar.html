@@ -1,8 +1,13 @@
-<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-lg">
     <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Plataforma de Caracterización Mecánica</span>
+        <a class="navbar-brand fw-bold fs-4" href="#">
+            🏭 Plataforma de Caracterización Mecánica
+        </a>
+        <a class="navbar-brand fw-bold fs-4" href="{{ url_for('portafolio') }}">
+            📃 Docs
+        </a>
         <div class="d-flex">
-            <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#settingsPanel">
+            <button class="btn btn-outline-light btn-sm rounded-pill px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#settingsPanel">
                 ⚙️ Configuración
             </button>
         </div>
