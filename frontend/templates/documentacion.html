@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentación Técnica | Plataforma Mecánica{% endblock %}
+
+{% block css %}
+<style>
+    /* Estilos para el menú lateral de documentación */
+    .docs-sidebar {
+        position: sticky;
+        top: 2rem;
+        height: calc(100vh - 4rem);
+        overflow-y: auto;
+        border-right: 1px solid #dee2e6;
+    }
+    .docs-sidebar .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+    .docs-sidebar .nav-link.active {
+        color: #0d6efd;
+        background-color: transparent;
+        border-left: 3px solid #0d6efd;
+    }
+    .math-formula {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 5px;
+        font-family: 'Courier New', Courier, monospace;
+        text-align: center;
+        margin: 1rem 0;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="container-light px-4 mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 d-none d-md-block">
+            <nav id="docs-navbar" class="docs-sidebar pe-3 flex-column align-items-stretch">
+                <h5 class="mb-3 text-primary fw-bold">Índice Técnico</h5>
+                <nav class="nav nav-pills flex-column">
+                    <a class="nav-link" href="#intro">1. Introducción a la API</a>
+                    <a class="nav-link" href="#traccion">2. Analizador de Tracción</a>
+                    <nav class="nav nav-pills flex-column ms-3 mb-2">
+                        <a class="nav-link text-sm py-1" href="#traccion-parsing">2.1. Parseo de Archivos</a>
+                        <a class="nav-link text-sm py-1" href="#traccion-math">2.2. Límite de Fluencia (0.2%)</a>
+                    </nav>
+                    <a class="nav-link" href="#vigas">3. Análisis Estructural</a>
+                </nav>
+            </nav>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+            <div data-bs-spy="scroll" data-bs-target="#docs-navbar" data-bs-smooth-scroll="true" tabindex="0">
+                
+                <section id="intro" class="mb-5">
+                    <h2 class="fw-bold border-bottom pb-2">1. Introducción y Arquitectura</h2>
+                    <p class="mt-3">
+                        Esta grupo de herramientas está diseñada bajo una arquitectura cliente-servidor para garantizar el máximo rendimiento en cálculos numéricos pesados. 
+                        Toda la lógica matemática intensa ha sido centralizada y programada directamente en <strong>Python</strong> utilizando librerías como NumPy, lo que permite un manejo eficiente de vectores de datos extensos y cálculos precisos.
+                    </p>
+                    <p>
+                        El frontend, desarrollado en HTML, CSS y JS puro, actúa como una interfaz reactiva que envía la información a los endpoints construidos con el framework <strong>Flask</strong>.
+                    </p>
+                </section>
+
+                <section id="traccion" class="mb-5">
+                    <h2 class="fw-bold border-bottom pb-2">2. Analizador de Ensayos de Tracción</h2>
+                    <p class="mt-3">El módulo de caracterización procesa directamente los archivos generados por maquinaria de laboratorio, calculando automáticamente propiedades mecánicas fundamentales.</p>
+                    
+                    <h4 id="traccion-parsing" class="mt-4">2.1. Parseo y Limpieza de Datos</h4>
+                    <p>El backend soporta la extracción binaria de hojas de cálculo de Excel (<code>.xlsm</code>, <code>.xlsx</code>) a través de la librería <code>openpyxl</code>, ignorando fórmulas y extrayendo estrictamente los valores de celda. Para archivos de texto plano (<code>.txt</code>), se aplican expresiones regulares para ubicar y aislar los vectores numéricos correspondientes a <em>Load</em> y <em>Stroke</em>, normalizando las curvas restando el valor inicial para forzar un inicio desde el origen (0,0).</p>
+
+                    <h4 id="traccion-math" class="mt-4">2.2. Límite de Fluencia y Método del Offset 0.2%</h4>
+                    <p>Para determinar el esfuerzo de fluencia ($$S_y$$), el sistema aplica el método estándar del desplazamiento del 0.2%. El Módulo de Young ($E$) se obtiene mediante una regresión lineal por mínimos cuadrados ($y = mx + b$) de la zona elástica.</p>
+                    <div class="math-formula">
+                        E = (σ₂ - σ₁) / (ε₂ - ε₁)
+                    </div>
+                    <p>
+                        La línea proyectada se desplaza 0.002 mm/mm en el eje de deformaciones. El punto exacto de fluencia se determina encontrando la intersección numérica iterando el diferencial entre el vector de esfuerzo real y la proyección lineal interpolada.
+                    </p>
+                </section>
+
+                <section id="vigas" class="mb-5">
+                    <h2 class="fw-bold border-bottom pb-2">3. Análisis Estructural y Vigas Continúas</h2>
+                    <p class="mt-3">
+                        El módulo de cálculo de reacciones y momentos flectores está fundamentado en métodos numéricos matriciales y de distribución de momentos. 
+                    </p>
+                    <div class="alert alert-info">
+                        <strong>Nota de Metodología:</strong> Para garantizar la coherencia en vigas de sección constante, el motor de cálculo aplica por defecto el factor de rigidez estándar para todos los tramos de la estructura, definido por la relación:
+                        <br><br>
+                        <div class="text-center font-monospace">
+                            K = E·I / L
+                        </div>
+                    </div>
+                    <p>Donde $E$ representa el módulo de elasticidad del material obtenido en los ensayos previos, $I$ la inercia de la sección transversal, y $L$ la longitud de la luz del tramo.</p>
+                </section>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

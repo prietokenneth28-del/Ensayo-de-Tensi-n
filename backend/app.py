@@ -236,10 +236,15 @@ def portafolio():
     # Renderiza la página de inicio (Landing Page)
     return render_template('portafolio.html')
 
-@app.route('/tensile-test')
+@app.route('/tensile_test')
 def tensile_test():
     # Renderiza la herramienta de tracción
     return render_template('tensileTest.html')
+
+@app.route('/documentacion')
+def documentacion():
+    # Renderiza la página de documentación técnica
+    return render_template('documentacion.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
